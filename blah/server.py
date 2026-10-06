@@ -159,9 +159,10 @@ def confirm_action(req: ConfirmRequest, user: dict = Depends(get_current_user)):
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
-@app.get("/")
-def serve_frontend():
-    index_path = os.path.join(FRONTEND_DIR, "index.html")
-    if not os.path.exists(index_path):
-        raise HTTPException(status_code=404, detail=f"Frontend file not found at {index_path}")
-    return FileResponse(index_path)
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "llm_mode": "gemini-3.5-flash-lite",
+        "search_mode": "hybrid"
+    }
