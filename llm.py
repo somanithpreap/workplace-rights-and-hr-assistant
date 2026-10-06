@@ -7,6 +7,16 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
+def generate_text(prompt: str) -> str:
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"Error generating answer: {str(e)}"
+
 def generate_response(prompt: str, context: str = "") -> str:
     system_instruction = (
         "You are an HR & Cambodian Workplace Rights Assistant for Mekong Apparel Co., Ltd. "
