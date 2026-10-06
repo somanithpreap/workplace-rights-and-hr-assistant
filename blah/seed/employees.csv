@@ -1,0 +1,31 @@
+employee_id,full_name,position,department,contract_type,start_date,fdc_end_date,base_wage_usd_month,shift,nssf_registered
+E001,Keo Sokha,HR officer,human resources,UDC,2012-04-24,,499,day B 08:00-17:00,yes
+E002,Kong Dara,accountant,finance,UDC,2018-03-14,,621,day A 07:00-16:00,yes
+E003,Mao Bopha,warehouse clerk,warehouse,UDC,2020-11-02,,268,day A 07:00-16:00,yes
+E004,Tep Chenda,quality checker,quality,UDC,2019-05-01,,259,day B 08:00-17:00,yes
+E005,Sok Rithy,sewing operator,production,UDC,2015-04-11,,219,day A 07:00-16:00,yes
+E006,Tep Sreymom,sewing operator,production,FDC,2023-04-27,2025-04-27,243,day B 08:00-17:00,yes
+E007,Kong Vannak,line leader,production,FDC,2024-12-01,2026-12-01,315,day A 07:00-16:00,yes
+E008,Heng Sophea,packer,finishing,UDC,2013-11-16,,215,day A 07:00-16:00,yes
+E009,Chan Kosal,quality checker,quality,UDC,2019-02-06,,244,day B 08:00-17:00,no
+E010,Nhem Malis,line leader,production,UDC,2014-12-21,,289,day B 08:00-17:00,yes
+E011,Tep Pisey,packer,finishing,UDC,2014-03-09,,216,day A 07:00-16:00,yes
+E012,Keo Vuthy,sewing operator,production,UDC,2016-09-23,,211,day B 08:00-17:00,yes
+E013,Seng Channary,quality checker,quality,UDC,2022-07-02,,251,day A 07:00-16:00,yes
+E014,Lim Sambath,sewing operator,production,UDC,2013-08-14,,219,day B 08:00-17:00,yes
+E015,Meas Leakhena,ironing operator,finishing,FDC,2025-06-02,2026-06-02,231,day B 08:00-17:00,yes
+E016,Meas Piseth,cutter,cutting,UDC,2018-07-03,,227,day A 07:00-16:00,yes
+E017,Tep Sreyneang,mechanic,maintenance,UDC,2020-11-03,,352,day A 07:00-16:00,yes
+E018,Yim Kimheng,packer,finishing,UDC,2025-05-21,,232,day A 07:00-16:00,no
+E019,Lim Navy,mechanic,maintenance,FDC,2024-05-02,2026-05-02,352,day B 08:00-17:00,no
+E020,Heng Ratana,cutter,cutting,UDC,2020-03-18,,235,day B 08:00-17:00,yes
+E021,Mao Sopheap,sewing operator,production,UDC,2014-01-21,,215,day B 08:00-17:00,yes
+E022,Mao Theary,sewing operator,production,UDC,2018-07-26,,222,day A 07:00-16:00,yes
+E023,Ouk Bunthoeun,quality checker,quality,UDC,2016-09-06,,245,day A 07:00-16:00,yes
+E024,Nhem Kunthea,mechanic,maintenance,FDC,2023-11-09,2025-11-09,366,day A 07:00-16:00,yes
+E025,Yim Nimol,ironing operator,finishing,UDC,2025-06-18,,228,day B 08:00-17:00,yes
+E026,Nhem Sothea,sewing operator,production,UDC,2015-08-26,,231,day B 08:00-17:00,yes
+E027,Kong Makara,line leader,production,UDC,2019-02-15,,319,day B 08:00-17:00,yes
+E028,Sok Dalin,mechanic,maintenance,UDC,2019-09-05,,404,day A 07:00-16:00,yes
+E029,Meas Raksmey,sewing operator,production,UDC,2019-03-04,,217,day B 08:00-17:00,yes
+E030,Heng Veasna,ironing operator,finishing,UDC,2017-01-03,,213,day B 08:00-17:00,yes
