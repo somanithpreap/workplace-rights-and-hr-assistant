@@ -1,0 +1,25 @@
+case_id,gold_cards,note
+T2-R01,labour_law:article_137,
+T2-R02,labour_law:article_139,
+T2-R03,labour_law:article_166,
+T2-R04,labour_law:article_167,
+T2-R05,labour_law:article_162;internal_work_rules:section_11,
+T2-R06,labour_law:article_068,
+T2-R07,labour_law:article_067;seniority_indemnity:scope,two sources phrase the maximum differently
+T2-R08,labour_law:article_075,
+T2-R09,labour_law:article_182;labour_law:article_183,
+T2-R10,social_security:article_055,
+T2-R11,labour_law:article_184,
+T2-R12,seniority_indemnity:payment_2019,
+T2-R13,seniority_indemnity:payment_2019;seniority_indemnity:back_pay_and_wage_definition;seniority_indemnity:back_pay_index_table,
+T2-R14,seniority_indemnity:payment_2019,garment back pay 15+15 days
+T2-R15,labour_law:article_089;seniority_indemnity:amendment,superseded article trap
+T2-R16,social_security:article_031;social_security:article_032,
+T2-R17,internal_work_rules:section_07,
+T2-R18,internal_work_rules:section_08,
+T2-R19,payment_of_wages:article_001,
+T2-R20,minimum_wage:article_024,translation error trap
+T2-R21,minimum_wage:article_017,
+T2-R22,minimum_wage:article_029;labour_law:article_104,abrogated articles trap
+T2-R23,labour_law:article_183;social_security:article_055,needs two places
+T2-R24,payment_of_wages:article_001;internal_work_rules:section_05,needs two places

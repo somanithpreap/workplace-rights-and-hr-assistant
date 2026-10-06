@@ -1,0 +1,6 @@
+.env
+__pycache__/
+data/processed/hr.db
+logs/
+data/processed/query_cache.json
+
