@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import re
 import sqlite3
@@ -27,6 +28,33 @@ THREAD_MEMORY: dict[str, list[dict]] = {}
 
 FOLLOWUP_START = re.compile(r"^(and|but|also|what about|how about|what if|who|same|then|so|or)\b", re.I)
 PRONOUN = re.compile(r"\b(it|that|this|those|these|they|them|there|then)\b", re.I)
+
+_RETRIEVAL_STOPWORDS = {
+    "a", "about", "after", "all", "an", "and", "are", "as", "at", "be", "been", "being",
+    "can", "could", "did", "do", "does", "for", "from", "give", "has", "have", "how",
+    "i", "in", "is", "it", "its", "may", "me", "must", "of", "on", "or", "per",
+    "should", "that", "the", "their", "them", "there", "this", "to", "under", "was",
+    "what", "when", "where", "which", "who", "why", "will", "with", "work", "worker",
+    "workers", "would",
+}
+_TOKEN_RE = re.compile(r"[a-z0-9]+", re.I)
+_ARTICLE_RE = re.compile(r"\b(?:articles?|arts?\.?|sections?)\s+(\d+(?:[-.]\d+)?)", re.I)
+
+
+def _retrieval_tokens(text: str) -> list[str]:
+    """Tokenize consistently for retrieval; normalize common English suffixes."""
+    tokens = []
+    for token in _TOKEN_RE.findall(text.lower()):
+        if len(token) > 4 and token.endswith("ies"):
+            token = token[:-3] + "y"
+        elif len(token) > 4 and token.endswith("ing"):
+            token = token[:-3]
+        elif len(token) > 3 and token.endswith("ed"):
+            token = token[:-2]
+        elif len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
+            token = token[:-1]
+        tokens.append(token)
+    return tokens
 
 
 # --- Tool layer (hr.db) ---
@@ -197,45 +225,91 @@ def load_knowledge_base() -> list[dict]:
 
 def search_knowledge_base(query: str, top_k: int = 4) -> list[dict]:
     kb = load_knowledge_base()
-    if not kb:
+    if not kb or top_k <= 0:
         return []
 
-    words = set(re.findall(r"\w+", query.lower())) - {
-        "what", "is", "the", "how", "and", "for", "to", "in", "of", "a", "an", "do", "does", "i", "can"
-    }
+    query_tokens = [t for t in _retrieval_tokens(query) if t not in _RETRIEVAL_STOPWORDS]
+    query_terms = set(query_tokens)
+    if not query_terms:
+        return []
 
-    scored_chunks = []
+    # BM25 over content, with separate boosts for title terms and explicit legal
+    # article references. This discounts common words and favors chunks that
+    # cover several of the question's meaningful terms.
+    documents = []
+    document_frequency = {}
+    total_length = 0
     for item in kb:
-        content = item.get("content", "").lower()
-        title = item.get("title", "").lower()
-        source = item.get("source", "").lower()
+        content = item.get("content", "")
+        title = item.get("title", "")
+        content_tokens = _retrieval_tokens(content)
+        title_tokens = _retrieval_tokens(title)
+        counts = {}
+        for token in content_tokens:
+            counts[token] = counts.get(token, 0) + 1
+        for token in set(counts):
+            document_frequency[token] = document_frequency.get(token, 0) + 1
+        total_length += len(content_tokens)
+        documents.append((item, content, title, content_tokens, title_tokens, counts))
 
-        # Score term matches
+    avg_length = total_length / max(len(documents), 1)
+    article_refs = set(_ARTICLE_RE.findall(query))
+    query_phrase = " ".join(_retrieval_tokens(query))
+    scored_chunks = []
+    n_docs = len(documents)
+    for index, (item, content, title, content_tokens, title_tokens, counts) in enumerate(documents):
+        length = len(content_tokens)
         score = 0.0
-        for w in words:
-            if w in title:
-                score += 3.0
-            if w in source:
+        matched_terms = 0
+        for term in query_terms:
+            tf = counts.get(term, 0)
+            if not tf:
+                continue
+            matched_terms += 1
+            df = document_frequency.get(term, 0)
+            idf = math.log(1 + (n_docs - df + 0.5) / (df + 0.5))
+            score += idf * (tf * 2.2) / (tf + 1.2 * (0.25 + 0.75 * length / max(avg_length, 1)))
+            if term in title_tokens:
+                score += idf * 0.8
+
+        if matched_terms:
+            # Reward short matching phrases and article-number matches, which
+            # are strong signals in this legal corpus.
+            normalized_content = " ".join(content_tokens)
+            for left, right in zip(query_tokens, query_tokens[1:]):
+                if f"{left} {right}" in normalized_content:
+                    score += 0.35
+            if article_refs:
+                refs_in_content = set(re.findall(
+                    r"\b(?:articles?|arts?\.?|sections?)\s+(\d+(?:[-.]\d+)?)",
+                    content, re.I
+                ))
+                if article_refs & refs_in_content:
+                    score += 5.0
+            if query_phrase and query_phrase in normalized_content:
                 score += 2.0
-            if w in content:
-                score += 1.0
+            scored_chunks.append((score, index, item, content, title))
 
-        if score > 0:
-            scored_chunks.append((score, item))
-
-    scored_chunks.sort(key=lambda x: x[0], reverse=True)
+    scored_chunks.sort(key=lambda row: (-row[0], row[1]))
 
     cards = []
-    for score, item in scored_chunks[:top_k]:
-        title = item.get("title", item.get("source", "Document"))
-        content = item.get("content", "")
+    source_counts = {}
+    for score, _, item, content, title in scored_chunks:
+        source = item.get("source", "")
+        # Limit near-duplicate chunks from one document so the small context
+        # window can include other relevant laws or company policies too.
+        if source_counts.get(source, 0) >= 2:
+            continue
         cards.append({
-            "citation": title,
+            "citation": title or item.get("source", "Document"),
             "text": content,
-            "bm25": round(score, 1),
+            "bm25": round(score, 3),
             "kept": True,
-            "source": item.get("source", ""),
+            "source": source,
         })
+        source_counts[source] = source_counts.get(source, 0) + 1
+        if len(cards) >= top_k:
+            break
 
     return cards
 
