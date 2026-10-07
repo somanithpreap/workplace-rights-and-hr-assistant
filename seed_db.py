@@ -6,11 +6,11 @@ Usage:
 
 Only the Python standard library is used (sqlite3, csv).
 """
-import csv, sqlite3, sys
+import csv, os, sqlite3, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DB = HERE / "hr.db"
+DB = Path(os.environ.get("HR_DB_PATH", HERE / "hr.db"))
 # CSV file in seed/  ->  table name in schema.sql
 TABLES = {'employees.csv': 'employees',
  'leave_requests.csv': 'leave_requests',
@@ -23,6 +23,7 @@ def main() -> None:
     if DB.exists():
         print(f"{DB.name} already exists; run with --reset to rebuild")
         return
+    DB.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB)
     con.executescript((HERE / "schema.sql").read_text(encoding="utf-8"))
     for csv_name, table in TABLES.items():

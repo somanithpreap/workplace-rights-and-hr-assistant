@@ -13,7 +13,7 @@ import tools as hr_tools
 load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "hr.db")
+DB_PATH = os.getenv("HR_DB_PATH", os.path.join(BASE_DIR, "hr.db"))
 
 client = genai.Client()
 

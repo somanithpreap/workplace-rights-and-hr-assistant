@@ -13,7 +13,7 @@ from agent import process_query
 from tools import submit_leave_request
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "hr.db")
+DB_PATH = os.getenv("HR_DB_PATH", os.path.join(BASE_DIR, "hr.db"))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 app = FastAPI(title="Mekong Apparel HR Assistant")

@@ -13,7 +13,7 @@ import time
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hr.db")
+DB_PATH = os.getenv("HR_DB_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "hr.db"))
 
 
 _RATE_CACHE = {"rate": None, "fetched_at": 0.0}
