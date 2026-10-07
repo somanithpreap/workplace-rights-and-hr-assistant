@@ -1,0 +1,17 @@
+services:
+  hr-assistant:
+    build: .
+    ports:
+      - "${PORT:-8000}:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HR_DB_PATH: /data/hr.db
+      MEMORY_DB_PATH: /data/memory.db
+    volumes:
+      - hr-data:/data
+    restart: unless-stopped
+
+volumes:
+  hr-data:

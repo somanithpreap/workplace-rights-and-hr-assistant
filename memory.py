@@ -3,7 +3,7 @@ import re
 import sqlite3
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MEMORY_DB = os.path.join(BASE_DIR, "memory.db")   # separate from hr.db, ignored by Git (*.db)
+MEMORY_DB = os.getenv("MEMORY_DB_PATH", os.path.join(BASE_DIR, "memory.db"))   # separate from hr.db, ignored by Git (*.db)
 WINDOW = 6                                        # messages the LLM sees (3 questions + 3 answers)
 
 REWRITE_PROMPT = (

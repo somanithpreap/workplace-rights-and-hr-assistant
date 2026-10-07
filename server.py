@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import uuid
+import time
 from typing import Dict, Optional
 
 from fastapi import FastAPI, Header, HTTPException
@@ -9,14 +10,16 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from agent import process_query
+from tools import submit_leave_request
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "hr.db")
+DB_PATH = os.getenv("HR_DB_PATH", os.path.join(BASE_DIR, "hr.db"))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 app = FastAPI(title="Mekong Apparel HR Assistant")
 
 SESSIONS: Dict[str, dict] = {}
+PENDING_ACTIONS: Dict[str, dict] = {}
 
 
 # --- Request Models ---
@@ -31,8 +34,7 @@ class ChatRequest(BaseModel):
 
 
 class ConfirmRequest(BaseModel):
-    action: str
-    data: dict
+    action_id: str
 
 
 # --- Database & Safe Data Normalization ---
@@ -198,6 +200,11 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
         question=user_query,
         thread_id=req.thread_id or "default"
     )
+    pending = response.get("pending_action")
+    if pending and pending.get("action_id") and pending.get("draft"):
+        PENDING_ACTIONS[pending["action_id"]] = {
+            "token": token, "draft": pending["draft"], "created_at": time.time()
+        }
     return response
 
 
@@ -208,11 +215,20 @@ def confirm_action(
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    return {
-        "status": "success",
-        "message": f"Action '{req.action}' confirmed successfully.",
-        "details": req.data,
-    }
+    token = authorization.split(" ", 1)[1]
+    if token not in SESSIONS:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    action = PENDING_ACTIONS.get(req.action_id)
+    if not action or time.time() - action["created_at"] > 900:
+        PENDING_ACTIONS.pop(req.action_id, None)
+        raise HTTPException(status_code=404, detail="This confirmation is no longer available")
+    if action["token"] != token:
+        raise HTTPException(status_code=403, detail="This action belongs to another session")
+    result = submit_leave_request(action["draft"])
+    if result.get("error"):
+        raise HTTPException(status_code=400, detail=result["error"])
+    PENDING_ACTIONS.pop(req.action_id, None)
+    return {"status": "success", "message": "Leave request submitted with pending status.", "details": result}
 
 
 # --- Static Frontend Serving ---
